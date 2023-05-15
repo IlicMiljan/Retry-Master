@@ -3,6 +3,7 @@
 namespace IlicMiljan\RetryMaster;
 
 use Exception;
+use IlicMiljan\RetryMaster\Callback\RetryCallback;
 use IlicMiljan\RetryMaster\Context\RetryContext;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Backoff\FixedBackoffPolicy;
@@ -34,7 +35,7 @@ class RetryTemplate
      * @throws Exception
      * @return mixed
      */
-    public function execute(callable $callback)
+    public function execute(RetryCallback $retryCallback)
     {
         $context = new RetryContext();
 
@@ -43,7 +44,7 @@ class RetryTemplate
             $this->retryStatistics->incrementTotalAttempts();
 
             try {
-                $result = $callback();
+                $result = $retryCallback->doWithRetry($context);
 
                 $this->retryStatistics->incrementSuccessfulAttempts();
 
