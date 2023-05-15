@@ -1,0 +1,27 @@
+{
+    "name": "ilicmiljan/retry-master",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "IlicMiljan\\RetryMaster\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "tests/"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Miljan Ilic",
+            "email": "hello@miljanilic.com"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4|>=8"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "phpunit/phpunit": "^9.6",
+        "phpstan/phpstan": "^1.10"
+    }
+}
