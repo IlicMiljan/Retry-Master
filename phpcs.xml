@@ -6,6 +6,7 @@
 
     <!-- Check all files in the src/ directory, -->
     <file>src/</file>
+    <file>tests/</file>
 
     <!-- Exclude our vendor directory from the violation check-->
     <exclude-pattern>*/vendor/*</exclude-pattern>
