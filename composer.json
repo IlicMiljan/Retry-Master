@@ -9,6 +9,11 @@
             "tests/"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "IlicMiljan\\RetryMaster\\Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Miljan Ilic",
