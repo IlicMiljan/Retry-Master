@@ -5,6 +5,7 @@ namespace IlicMiljan\RetryMaster;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use Psr\Log\LoggerInterface;
 
 /**
  * ## RetryTemplateBuilderInterface
@@ -50,6 +51,14 @@ interface RetryTemplateBuilderInterface
      * @return self Returns the builder instance for method chaining.
      */
     public function setRetryStatistics(RetryStatistics $retryStatistics): self;
+
+    /**
+     * Sets the logger for the RetryTemplate being built.
+     *
+     * @param LoggerInterface $logger The logger to set.
+     * @return self Returns the builder instance for method chaining.
+     */
+    public function setLogger(LoggerInterface $logger): self;
 
     /**
      * Builds and returns a new instance of RetryTemplateInterface.

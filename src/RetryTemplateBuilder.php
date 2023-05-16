@@ -5,6 +5,7 @@ namespace IlicMiljan\RetryMaster;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class RetryTemplateBuilder
@@ -12,7 +13,8 @@ use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
  * The RetryTemplateBuilder class provides a concrete implementation of
  * RetryTemplateBuilderInterface. It allows for the flexible construction of
  * RetryTemplate instances using the builder pattern. It offers the ability to
- * customize a RetryTemplate's retry policy, backoff policy, and retry statistics.
+ * customize a RetryTemplate's retry policy, backoff policy, and retry
+ * statistics and logger.
  *
  * @package IlicMiljan\RetryMaster
  */
@@ -38,6 +40,13 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
      * @var RetryStatistics|null
      */
     private ?RetryStatistics $retryStatistics = null;
+
+    /**
+     * The logger for the RetryTemplate being built.
+     *
+     * @var LoggerInterface|null
+     */
+    private ?LoggerInterface $logger = null;
 
     /**
      * Sets the retry policy for the RetryTemplate being built.
@@ -76,6 +85,18 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
     }
 
     /**
+     * Sets the logger for the RetryTemplate being built.
+     *
+     * @param LoggerInterface $logger The logger to set.
+     * @return self Returns the builder instance for method chaining.
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    /**
      * Builds and returns a new instance of RetryTemplate.
      *
      * This method constructs a RetryTemplate using the current configuration of
@@ -89,7 +110,8 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
         return new RetryTemplate(
             $this->retryPolicy,
             $this->backoffPolicy,
-            $this->retryStatistics
+            $this->retryStatistics,
+            $this->logger
         );
     }
 }

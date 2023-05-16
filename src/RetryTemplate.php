@@ -6,6 +6,7 @@ use Exception;
 use IlicMiljan\RetryMaster\Callback\RecoveryCallback;
 use IlicMiljan\RetryMaster\Callback\RetryCallback;
 use IlicMiljan\RetryMaster\Context\RetryContext;
+use IlicMiljan\RetryMaster\Logger\NullLogger;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Backoff\FixedBackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\MaxAttemptsRetryPolicy;
@@ -13,6 +14,7 @@ use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\InMemoryRetryStatistics;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
 use IlicMiljan\RetryMaster\Util\Sleep;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class RetryTemplate
@@ -39,15 +41,18 @@ class RetryTemplate implements RetryTemplateInterface
     private RetryPolicy $retryPolicy;
     private BackoffPolicy $backoffPolicy;
     private RetryStatistics $retryStatistics;
+    private LoggerInterface $logger;
 
     public function __construct(
         RetryPolicy $retryPolicy = null,
         BackoffPolicy $backoffPolicy = null,
-        RetryStatistics $retryStatistics = null
+        RetryStatistics $retryStatistics = null,
+        LoggerInterface $logger = null
     ) {
         $this->retryPolicy = $retryPolicy ?: new MaxAttemptsRetryPolicy(self::DEFAULT_MAX_ATTEMPTS);
         $this->backoffPolicy = $backoffPolicy ?: new FixedBackoffPolicy();
         $this->retryStatistics = $retryStatistics ?: new InMemoryRetryStatistics();
+        $this->logger = $logger ?: new NullLogger();
     }
 
     /**
@@ -77,9 +82,21 @@ class RetryTemplate implements RetryTemplateInterface
 
                 $this->retryStatistics->incrementSuccessfulAttempts();
 
+                $this->logger->info('Operation succeeded on attempt', [
+                    'attempt' => $context->getRetryCount(),
+                    'successfulAttempts' => $this->retryStatistics->getSuccessfulAttempts(),
+                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+                ]);
+
                 return $result;
             } catch (Exception $e) {
                 $this->retryStatistics->incrementFailedAttempts();
+
+                $this->logger->error('Operation failed', [
+                    'exception' => $e,
+                    'failedAttempts' => $this->retryStatistics->getFailedAttempts(),
+                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+                ]);
 
                 if (!$this->retryPolicy->shouldRetry($e, $context)) {
                     throw $e;
@@ -89,6 +106,11 @@ class RetryTemplate implements RetryTemplateInterface
 
                 $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
                 $this->retryStatistics->incrementSleepTime($sleepTime);
+
+                $this->logger->info('Sleeping before next attempt', [
+                    'sleepTime' => $sleepTime,
+                    'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
+                ]);
 
                 Sleep::milliseconds($sleepTime);
             }
@@ -125,9 +147,21 @@ class RetryTemplate implements RetryTemplateInterface
 
                 $this->retryStatistics->incrementSuccessfulAttempts();
 
+                $this->logger->info('Operation succeeded on attempt', [
+                    'attempt' => $context->getRetryCount(),
+                    'successfulAttempts' => $this->retryStatistics->getSuccessfulAttempts(),
+                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+                ]);
+
                 return $result;
             } catch (Exception $e) {
                 $this->retryStatistics->incrementFailedAttempts();
+
+                $this->logger->error('Operation failed', [
+                    'exception' => $e,
+                    'failedAttempts' => $this->retryStatistics->getFailedAttempts(),
+                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+                ]);
 
                 if (!$this->retryPolicy->shouldRetry($e, $context)) {
                     return $recoveryCallback->recover($context);
@@ -137,6 +171,11 @@ class RetryTemplate implements RetryTemplateInterface
 
                 $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
                 $this->retryStatistics->incrementSleepTime($sleepTime);
+
+                $this->logger->info('Sleeping before next attempt', [
+                    'sleepTime' => $sleepTime,
+                    'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
+                ]);
 
                 Sleep::milliseconds($sleepTime);
             }
