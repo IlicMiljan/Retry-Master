@@ -24,6 +24,7 @@ RetryMaster is a flexible and extensible PHP library for handling operation retr
     - [Retry Statistics](#retry-statistics)
     - [Retry and Recovery Callbacks](#retry-and-recovery-callbacks)
     - [RetryTemplate](#retrytemplate)
+    - [Logging](#logging)
     - [Util](#util)
 - [License](#license)
 - [Credits](#credits)
@@ -190,6 +191,23 @@ You can define custom logic to execute on each retry attempt and when all retrie
 ### RetryTemplate
 
 The `RetryTemplate` class simplifies the process of executing operations with retry logic. You provide the operation logic and the RetryTemplate handles the retries according to the configured retry and backoff policies.
+
+### Logging
+
+RetryMaster comes with an integrated logging system that you can use to monitor and debug your retry operations. It uses the PSR-3 Logger Interface, making it compatible with most logging libraries.
+
+You can set up logging by providing a logger to your RetryTemplate:
+
+```php
+use IlicMiljan\RetryMaster\RetryTemplateBuilder;
+use Psr\Log\LoggerInterface;
+
+$logger = // Your PSR-3 compatible logger here.
+
+$retryTemplate = (new RetryTemplateBuilder())
+                    ->setLogger($logger)
+                    ->build();
+```
 
 ### Util
 
