@@ -29,7 +29,7 @@ use IlicMiljan\RetryMaster\Util\Sleep;
  *
  * @package IlicMiljan\RetryMaster
  */
-class RetryTemplate
+class RetryTemplate implements RetryTemplateInterface
 {
     /**
      * The default maximum number of retry attempts.
