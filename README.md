@@ -32,16 +32,16 @@ Be sure to run `composer dump-autoload` if you're not using a framework that doe
 
 ## Usage
 
-Using RetryMaster in your PHP application involves setting up a `RetryTemplate` and executing your operation using this template. You can customize the retry logic by specifying retry and backoff policies when constructing the RetryTemplate.
+Using RetryMaster in your PHP application involves setting up a `RetryTemplate` and executing your operation using this template. With the introduction of a builder and interfaces, you can use `RetryTemplateBuilder` to conveniently create a `RetryTemplate`. You can customize the retry logic by specifying retry and backoff policies when constructing the RetryTemplate.
 
 Here is a basic example:
 
 ```php
-use IlicMiljan\RetryMaster\RetryTemplate;
+use IlicMiljan\RetryMaster\RetryTemplateBuilder;
 use IlicMiljan\RetryMaster\Callback\RetryCallback;
 use IlicMiljan\RetryMaster\Context\RetryContext;
 
-$retryTemplate = new RetryTemplate();
+$retryTemplate = (new RetryTemplateBuilder())->build();
 
 $retryCallback = new class implements RetryCallback {
     public function doWithRetry(RetryContext $context) {
@@ -57,17 +57,20 @@ In this example, the operation will be retried up to three times (the default ma
 
 ### Customizing Retry Logic
 
-You can specify custom retry and backoff policies when creating the RetryTemplate:
+You can specify custom retry and backoff policies when creating the RetryTemplate using the builder:
 
 ```php
-use IlicMiljan\RetryMaster\RetryTemplate;
+use IlicMiljan\RetryMaster\RetryTemplateBuilder;
 use IlicMiljan\RetryMaster\Policy\Retry\MaxAttemptsRetryPolicy;
 use IlicMiljan\RetryMaster\Policy\Backoff\UniformRandomBackoffPolicy;
 
 $retryPolicy = new MaxAttemptsRetryPolicy(5);
 $backoffPolicy = new UniformRandomBackoffPolicy(500, 1500);
 
-$retryTemplate = new RetryTemplate($retryPolicy, $backoffPolicy);
+$retryTemplate = (new RetryTemplateBuilder())
+                    ->setRetryPolicy($retryPolicy)
+                    ->setBackoffPolicy($backoffPolicy)
+                    ->build();
 ```
 
 In this example, the operation will be retried up to five times, and the delay between attempts will be a random number of milliseconds between 500 and 1500.
@@ -77,12 +80,12 @@ In this example, the operation will be retried up to five times, and the delay b
 You can provide a recovery callback to handle cases when all retry attempts fail:
 
 ```php
-use IlicMiljan\RetryMaster\RetryTemplate;
+use IlicMiljan\RetryMaster\RetryTemplateBuilder;
 use IlicMiljan\RetryMaster\Callback\RetryCallback;
 use IlicMiljan\RetryMaster\Callback\RecoveryCallback;
 use IlicMiljan\RetryMaster\Context\RetryContext;
 
-$retryTemplate = new RetryTemplate();
+$retryTemplate = (new RetryTemplateBuilder())->build();
 
 $retryCallback = new class implements RetryCallback {
     public function doWithRetry(RetryContext $context) {
@@ -114,7 +117,6 @@ echo 'Total sleep time: ' . $retryStatistics->getTotalSleepTimeMilliseconds() . 
 ```
 
 For more usage examples, please refer to the inline comments in each class.
-
 ## Documentation
 
 ### Overview
