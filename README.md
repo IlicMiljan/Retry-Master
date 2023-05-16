@@ -145,13 +145,21 @@ RetryMaster is designed to facilitate the implementation of retry operations in 
 
 A retry policy determines whether an operation should be retried after a failure. RetryMaster includes several built-in retry policies, such as:
 
-- `AlwaysRetryPolicy`: This policy will always retry the operation, regardless of the type of exception.
-- `MaxAttemptsRetryPolicy`: This policy will retry the operation up to a maximum number of attempts.
-- `NeverRetryPolicy`: This policy will never retry the operation.
-- `NonRepeatingExceptionRetryPolicy`: This policy will retry the operation if the last exception is of a different type than the current exception.
-- `SimpleRetryPolicy`: This policy will retry the operation a specified number of times and for specific exceptions.
-- `SpecificExceptionRetryPolicy`: This policy will retry the operation if the exception is an instance of a specific class.
-- `TimeoutRetryPolicy`: This policy will retry the operation as long as the elapsed time is less than a specified timeout.
+- `AlwaysRetryPolicy`: This policy always allows a retry, irrespective of the type of exception or the number of attempts so far. It can be used in scenarios where you want to keep retrying indefinitely until the operation succeeds. However, it should be used with caution, as it can potentially lead to an infinite loop if the operation always fails.
+
+- `CompositeRetryPolicy`: This policy delegates the decision whether to retry to multiple other policies. It allows combining multiple policies in an optimistic or pessimistic manner. In optimistic mode (the default), the operation is retried if any of the policies allows it. In pessimistic mode, the operation is retried only if all policies allow it.
+
+- `MaxAttemptsRetryPolicy`: This policy allows an operation to be retried a specified maximum number of times. It is useful in scenarios where you want to limit the number of retry attempts for an operation to avoid excessive retries.
+
+- `NeverRetryPolicy`: This policy disallows any retry attempts, regardless of the operation or its result. It is useful in scenarios where you do not want any retries to be performed for a certain operation, irrespective of whether it fails or not.
+
+- `NonRepeatingExceptionRetryPolicy`: This policy allows a retry only if the exception type thrown by the last failed attempt is different from the current exception type. It is beneficial in scenarios where an operation is expected to fail repeatedly with the same type of exception, and retrying would not change the outcome.
+
+- `SimpleRetryPolicy`: This policy retries a failed operation a fixed number of times, and for a specific set of exceptions. It is configurable with a maxAttempts property and a retryableExceptions list. The shouldRetry method will return true if the exception is either in the list of retryable exceptions or if the list is empty, and the maximum number of attempts has not been reached.
+
+- `SpecificExceptionRetryPolicy`: This policy decides to retry a failed operation based on the type of exception that occurred. It is initialized with a specific exception class, and the shouldRetry method will return true if the exception that caused the failure is an instance of the configured class.
+
+- `TimeoutRetryPolicy`: This policy decides to retry a failed operation based on the total elapsed time since the first attempt. It is initialized with a timeout in milliseconds, and the shouldRetry method will return true if the elapsed time since the first attempt is less than the configured timeout.
 
 You can also create your own retry policies by implementing the `RetryPolicy` interface.
 
@@ -159,9 +167,15 @@ You can also create your own retry policies by implementing the `RetryPolicy` in
 
 A backoff policy determines the delay between retry attempts. RetryMaster includes several built-in backoff policies, such as:
 
-- `FixedBackoffPolicy`: This policy applies a fixed delay between retry attempts.
-- `NoBackoffPolicy`: This policy applies no delay between retry attempts.
-- `UniformRandomBackoffPolicy`: This policy applies a random delay (within a specified range) between retry attempts.
+- `ExponentialBackoffPolicy`: This policy provides an exponential backoff, meaning that the wait time between retry attempts increases exponentially with each failed attempt. This is a standard error-handling strategy for network applications and helps to gradually reduce the load on the system during a series of failures.
+
+- `ExponentialRandomBackoffPolicy`: This policy provides an exponential backoff with a random component. The wait time between retry attempts increases exponentially and varies randomly within a range defined by the current backoff interval. This helps to prevent many instances of an application from all retrying at the same time, potentially overwhelming a system or service, a scenario known as the "thundering herd problem".
+
+- `FixedBackoffPolicy`: This policy applies a fixed delay between retry attempts. The wait time is always the same, regardless of the number of attempts. This is useful in situations where the likelihood of a retry succeeding is not related to the number of times it has been tried, and where it's not necessary to increase the delay over time.
+
+- `NoBackoffPolicy`: This policy applies no delay between retry attempts. The retries occur immediately after a failure. This is useful in scenarios where you want to retry an operation immediately after a failure without any delay. However, it should be used cautiously as it can potentially lead to higher load on the system in case of persistent failures, due to the absence of any delay between consecutive retry attempts.
+
+- `UniformRandomBackoffPolicy`: This policy applies a random delay (within a specified range) between retry attempts. The wait time is a random number uniformly distributed between a minimum and maximum interval. This can be used to introduce a random delay between retries to avoid a thundering herd problem.
 
 You can also create your own backoff policies by implementing the `BackoffPolicy` interface.
 
