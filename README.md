@@ -10,6 +10,24 @@ RetryMaster is a flexible and extensible PHP library for handling operation retr
 - **Easy-to-Use Retry Template**: Use the RetryTemplate to execute operations with retry logic. Simply provide the operation logic and the RetryTemplate handles the rest.
 - **Custom Retry and Recovery Callbacks**: Define custom logic to execute on each retry attempt and when all retries fail.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Customizing Retry Logic](#customizing-retry-logic)
+    - [Handling Retry Failures](#handling-retry-failures)
+    - [Gathering Retry Statistics](#gathering-retry-statistics)
+- [Documentation](#documentation)
+    - [Overview](#overview)
+    - [Retry Policies](#retry-policies)
+    - [Backoff Policies](#backoff-policies)
+    - [Retry Statistics](#retry-statistics)
+    - [Retry and Recovery Callbacks](#retry-and-recovery-callbacks)
+    - [RetryTemplate](#retrytemplate)
+    - [Util](#util)
+- [License](#license)
+- [Credits](#credits)
+
 ## Installation
 
 RetryMaster is available as a Composer package. You can add it to your project by running the following command in your terminal:
