@@ -22,13 +22,13 @@ class SimpleRetryPolicy implements RetryPolicy
 {
     private int $maxAttempts;
     /**
-     * @var Exception[]
+     * @var string[]
      */
     private array $retryableExceptions;
 
     /**
      * @param int $maxAttempts Maximum number of attempts before giving up.
-     * @param Exception[] $retryableExceptions List of exceptions for which a
+     * @param string[] $retryableExceptions List of exceptions for which a
      *                                         retry should be attempted.
      */
     public function __construct(int $maxAttempts = 3, array $retryableExceptions = [])
