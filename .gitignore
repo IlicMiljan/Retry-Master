@@ -43,3 +43,6 @@ composer.phar
 
 # PHPUnit
 .phpunit.result.cache
+
+# Mutation Testing
+infection-report.txt
