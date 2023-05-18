@@ -69,7 +69,7 @@ class RetryContext
      * Gets the last exception that was thrown during a retry attempt.
      *
      * @return Exception|null The last exception, or null if no exception has
-     * been set yet.
+     *                        been set yet.
      */
     public function getLastException(): ?Exception
     {
@@ -79,8 +79,8 @@ class RetryContext
     /**
      * Gets the start time of the first retry attempt.
      *
-     * @return float|null The start time in microseconds as a float, or null if
-     * no retry attempt has been made yet.
+     * @return float The start time in microseconds as a float, or null if
+     *               no retry attempt has been made yet.
      */
     public function getStartTime(): float
     {
