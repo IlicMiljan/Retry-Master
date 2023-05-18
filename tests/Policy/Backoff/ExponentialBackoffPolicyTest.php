@@ -18,7 +18,7 @@ class ExponentialBackoffPolicyTest extends TestCase
         $this->assertEquals(8000, $backoffPolicy->backoff(4));  // 1000 * 2^(4-1) = 8000
     }
 
-    public function testBackoffWithDifferentInitialAndMultiplier(): void
+    public function testBackoffWithDifferentInitialParameters(): void
     {
         $backoffPolicy = new ExponentialBackoffPolicy(500, 3);
 

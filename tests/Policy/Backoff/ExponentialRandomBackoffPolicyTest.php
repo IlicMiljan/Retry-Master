@@ -3,38 +3,38 @@
 namespace IlicMiljan\RetryMaster\Tests\Policy\Backoff;
 
 use IlicMiljan\RetryMaster\Policy\Backoff\ExponentialRandomBackoffPolicy;
+use IlicMiljan\RetryMaster\Util\Random;
 use PHPUnit\Framework\TestCase;
 
 class ExponentialRandomBackoffPolicyTest extends TestCase
 {
-    public function testBackoffWithinRange(): void
+    public function testBackoff(): void
     {
-        $backoffPolicy = new ExponentialRandomBackoffPolicy(1000, 2, 8000);
+        $random = $this->createMock(Random::class);
+        $random->method('nextInt')->willReturnCallback(fn($min, $max) => $max);
 
-        for ($i = 1; $i <= 10; $i++) {
-            $backoff = $backoffPolicy->backoff($i);
+        $backoffPolicy = new ExponentialRandomBackoffPolicy();
+        $backoffPolicy->setRandom($random);
 
-            // Calculate expected interval.
-            $expectedInterval = min(
-                intval(1000 * pow(2, $i - 1)),
-                8000
-            );
-
-            // Check that backoff is within expected range.
-            $this->assertGreaterThanOrEqual(1000, $backoff);
-            $this->assertLessThanOrEqual($expectedInterval, $backoff);
-        }
+        $this->assertEquals(1000, $backoffPolicy->backoff(1));
+        $this->assertEquals(2000, $backoffPolicy->backoff(2));
+        $this->assertEquals(4000, $backoffPolicy->backoff(3));
+        $this->assertEquals(8000, $backoffPolicy->backoff(4));
+        $this->assertEquals(16000, $backoffPolicy->backoff(5));
+        $this->assertEquals(30000, $backoffPolicy->backoff(6));
     }
 
-    public function testBackoffDoesNotExceedMaxInterval(): void
+    public function testBackoffWithDifferentInitialParameters(): void
     {
-        $backoffPolicy = new ExponentialRandomBackoffPolicy(1000, 2, 5000);
+        $random = $this->createMock(Random::class);
+        $random->method('nextInt')->willReturnCallback(fn($min, $max) => $max);
 
-        for ($i = 1; $i <= 10; $i++) {
-            $backoff = $backoffPolicy->backoff($i);
+        $backoffPolicy = new ExponentialRandomBackoffPolicy(500, 3, 15000);
+        $backoffPolicy->setRandom($random);
 
-            // Check that backoff does not exceed maximum interval.
-            $this->assertLessThanOrEqual(5000, $backoff);
-        }
+        $this->assertEquals(500, $backoffPolicy->backoff(1));
+        $this->assertEquals(1500, $backoffPolicy->backoff(2));
+        $this->assertEquals(4500, $backoffPolicy->backoff(3));
+        $this->assertEquals(13500, $backoffPolicy->backoff(4));
     }
 }

@@ -58,20 +58,17 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
      *                          backoff interval from the last one.
      * @param int $maxIntervalMilliseconds The maximum interval in milliseconds
      *                                      to wait between retries.
-     * @param Random|null $random An instance of Random interface for generating
-     *                            random numbers. If not provided, a new
-     *                            instance of RandomGenerator is used.
      */
     public function __construct(
         int $initialIntervalMilliseconds = 1000,
         float $multiplier = 2,
-        int $maxIntervalMilliseconds = 30000,
-        Random $random = null
+        int $maxIntervalMilliseconds = 30000
     ) {
         $this->initialIntervalMilliseconds = $initialIntervalMilliseconds;
         $this->multiplier = $multiplier;
         $this->maxIntervalMilliseconds = $maxIntervalMilliseconds;
-        $this->random = $random ?: new RandomGenerator();
+
+        $this->random = new RandomGenerator(); // Default
     }
 
     /**
@@ -91,5 +88,15 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
         $interval = min($interval, $this->maxIntervalMilliseconds);
 
         return $this->random->nextInt($this->initialIntervalMilliseconds, $interval);
+    }
+
+    /**
+     * Sets the random number generator instance used by this policy.
+     *
+     * @param Random $random An instance of Random interface for generating random numbers.
+     */
+    public function setRandom(Random $random): void
+    {
+        $this->random = $random;
     }
 }
