@@ -7,9 +7,9 @@ use PHPUnit\Framework\TestCase;
 
 class FixedBackoffPolicyTest extends TestCase
 {
-    public function testFixedBackoff(): void
+    public function testBackoff(): void
     {
-        $backoffPolicy = new FixedBackoffPolicy(1000);
+        $backoffPolicy = new FixedBackoffPolicy();
 
         for ($i = 1; $i <= 10; $i++) {
             $backoff = $backoffPolicy->backoff($i);
@@ -19,7 +19,7 @@ class FixedBackoffPolicyTest extends TestCase
         }
     }
 
-    public function testCustomFixedBackoff(): void
+    public function testBackoffWithDifferentInitialParameters(): void
     {
         $backoffPolicy = new FixedBackoffPolicy(2000);
 
