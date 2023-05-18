@@ -4,34 +4,26 @@ namespace IlicMiljan\RetryMaster\Tests\Logger;
 
 use IlicMiljan\RetryMaster\Logger\NullLogger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LogLevel;
 
 class NullLoggerTest extends TestCase
 {
     public function testNullLogger(): void
     {
-        $nullLogger = new NullLogger();
+        $logger = new NullLogger();
+        $message = 'Test message';
+        $context = ['key' => 'value'];
 
-        // Define log levels as per PSR-3 standard.
-        $logLevels = [
-            LogLevel::EMERGENCY,
-            LogLevel::ALERT,
-            LogLevel::CRITICAL,
-            LogLevel::ERROR,
-            LogLevel::WARNING,
-            LogLevel::NOTICE,
-            LogLevel::INFO,
-            LogLevel::DEBUG,
-        ];
+        // Call each logging method and ensure no errors occur
+        $logger->emergency($message, $context);
+        $logger->alert($message, $context);
+        $logger->critical($message, $context);
+        $logger->error($message, $context);
+        $logger->warning($message, $context);
+        $logger->notice($message, $context);
+        $logger->info($message, $context);
+        $logger->debug($message, $context);
+        $logger->log('custom', $message, $context);
 
-        // Test that no exception is thrown when we log a message at any level.
-        foreach ($logLevels as $logLevel) {
-            try {
-                $nullLogger->log($logLevel, 'Test message');
-                $this->assertTrue(true);
-            } catch (\Exception $e) {
-                $this->fail('An exception was thrown when it should not have been.');
-            }
-        }
+        $this->assertTrue(true);
     }
 }
