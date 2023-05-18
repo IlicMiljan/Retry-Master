@@ -56,20 +56,45 @@ class RetryTemplate implements RetryTemplateInterface
     }
 
     /**
-     * Executes the given RetryCallback, handling retries according to the
-     * configured retry and backoff policies.
+     * Executes the operation encapsulated by the retry callback.
      *
-     * This method will continue to retry the operation until the retry policy
-     * determines that a retry should not
-     * be attempted, at which point the last exception thrown by the operation
-     * will be rethrown.
-     *
-     * @param RetryCallback $retryCallback The operation to retry.
-     * @throws Exception If the operation fails and the retry policy determines
-     *                   that a retry should not be attempted.
-     * @return mixed The result of the operation.
+     * @param RetryCallback $retryCallback The retry callback.
+     * @return mixed The result of the retry callback execution.
+     * @throws Exception If all retries fail and there's no recovery callback.
      */
     public function execute(RetryCallback $retryCallback)
+    {
+        return $this->doExecute($retryCallback);
+    }
+
+    /**
+     * Executes the operation encapsulated by the retry callback with a recovery
+     * callback.
+     *
+     * @param RetryCallback $retryCallback The retry callback.
+     * @param RecoveryCallback $recoveryCallback The recovery callback.
+     * @return mixed The result of the retry callback execution or the recovery
+     *               callback if all retries fail.
+     * @throws Exception If all retries fail and the recovery callback is not
+     *                   provided or also fails.
+     */
+    public function executeWithRecovery(RetryCallback $retryCallback, RecoveryCallback $recoveryCallback)
+    {
+        return $this->doExecute($retryCallback, $recoveryCallback);
+    }
+
+    /**
+     * Executes the operation with retry and backoff logic.
+     *
+     * @param RetryCallback $retryCallback The retry callback.
+     * @param RecoveryCallback|null $recoveryCallback The optional recovery
+     *                                                callback.
+     * @return mixed The result of the retry callback execution or the recovery
+     *               callback if all retries fail.
+     * @throws Exception If all retries fail and the recovery callback is not
+     *                   provided or also fails.
+     */
+    private function doExecute(RetryCallback $retryCallback, RecoveryCallback $recoveryCallback = null)
     {
         $context = new RetryContext();
 
@@ -77,109 +102,108 @@ class RetryTemplate implements RetryTemplateInterface
             $this->retryStatistics->incrementTotalAttempts();
 
             try {
-                $result = $retryCallback->doWithRetry($context);
-
-                $this->retryStatistics->incrementSuccessfulAttempts();
-
-                $this->logger->info('Operation succeeded on attempt', [
-                    'attempt' => $context->getRetryCount(),
-                    'successfulAttempts' => $this->retryStatistics->getSuccessfulAttempts(),
-                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
-                ]);
-
-                return $result;
+                return $this->performOperation($retryCallback, $context);
             } catch (Exception $e) {
-                $this->retryStatistics->incrementFailedAttempts();
-
-                $this->logger->error('Operation failed', [
-                    'exception' => $e,
-                    'failedAttempts' => $this->retryStatistics->getFailedAttempts(),
-                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
-                ]);
+                $this->handleFailure($e, $context);
 
                 if (!$this->retryPolicy->shouldRetry($e, $context)) {
+                    if ($recoveryCallback) {
+                        return $this->performRecovery($recoveryCallback, $context);
+                    }
+
                     throw $e;
                 }
 
-                $context->incrementRetryCount();
-                $context->setLastException($e);
-
-                $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
-                $this->retryStatistics->incrementSleepTime($sleepTime);
-
-                $this->logger->info('Sleeping before next attempt', [
-                    'sleepTime' => $sleepTime,
-                    'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
-                ]);
-
-                Sleep::milliseconds($sleepTime);
+                $this->performBackoff($context);
             }
         }
     }
 
     /**
-     * Executes the given RetryCallback, handling retries according to the
-     * configured retry and backoff policies. If all retry attempts fail,
-     * this method will execute the provided RecoveryCallback.
+     * Performs the operation encapsulated by the retry callback and increments
+     * the successful attempt counter.
      *
-     * This method will continue to retry the operation until the retry policy
-     * determines that a retry should not be attempted, at which point it will
-     * execute the RecoveryCallback and return its result instead of throwing
-     * an exception.
-     *
-     * @param RetryCallback $retryCallback The operation to retry.
-     * @param RecoveryCallback $recoveryCallback The recovery operation to
-     *                                           execute if all retries fail.
-     * @throws Exception If the recovery operation itself throws an exception.
-     * @return mixed The result of the operation or the result of the recovery
-     *               operation if all retries fail.
+     * @param RetryCallback $retryCallback The retry callback.
+     * @param RetryContext $context The retry context.
+     * @return mixed The result of the retry callback execution.
      */
-    public function executeWithRecovery(RetryCallback $retryCallback, RecoveryCallback $recoveryCallback)
+    private function performOperation(RetryCallback $retryCallback, RetryContext $context)
     {
-        $context = new RetryContext();
+        $result = $retryCallback->doWithRetry($context);
 
-        while (true) {
-            $this->retryStatistics->incrementTotalAttempts();
+        $this->retryStatistics->incrementSuccessfulAttempts();
 
-            try {
-                $result = $retryCallback->doWithRetry($context);
+        $this->logger->info('Operation succeeded on attempt', [
+            'attempt' => $context->getRetryCount(),
+            'successfulAttempts' => $this->retryStatistics->getSuccessfulAttempts(),
+            'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+        ]);
 
-                $this->retryStatistics->incrementSuccessfulAttempts();
+        return $result;
+    }
 
-                $this->logger->info('Operation succeeded on attempt', [
-                    'attempt' => $context->getRetryCount(),
-                    'successfulAttempts' => $this->retryStatistics->getSuccessfulAttempts(),
-                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
-                ]);
+    /**
+     * Performs the operation encapsulated by the recovery callback.
+     *
+     * @param RecoveryCallback $recoveryCallback
+     * @param RetryContext $context
+     * @return mixed
+     * @throws Exception
+     */
+    private function performRecovery(RecoveryCallback $recoveryCallback, RetryContext $context)
+    {
+        try {
+            $result = $recoveryCallback->recover($context);
 
-                return $result;
-            } catch (Exception $e) {
-                $this->retryStatistics->incrementFailedAttempts();
+            $this->logger->info('Recovery operation succeeded');
 
-                $this->logger->error('Operation failed', [
-                    'exception' => $e,
-                    'failedAttempts' => $this->retryStatistics->getFailedAttempts(),
-                    'totalAttempts' => $this->retryStatistics->getTotalAttempts()
-                ]);
+            return $result;
+        } catch (Exception $e) {
+            $this->logger->error('Recovery failed', [
+                'exception' => $e
+            ]);
 
-                if (!$this->retryPolicy->shouldRetry($e, $context)) {
-                    return $recoveryCallback->recover($context);
-                }
-
-                $context->incrementRetryCount();
-                $context->setLastException($e);
-
-                $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
-                $this->retryStatistics->incrementSleepTime($sleepTime);
-
-                $this->logger->info('Sleeping before next attempt', [
-                    'sleepTime' => $sleepTime,
-                    'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
-                ]);
-
-                Sleep::milliseconds($sleepTime);
-            }
+            throw $e;
         }
+    }
+
+    /**
+     * Handles a failure of the retry callback operation by logging the failure,
+     * incrementing the failed attempt counter and updating the retry context.
+     *
+     * @param Exception $e The exception that was thrown.
+     * @param RetryContext $context The retry context.
+     */
+    private function handleFailure(Exception $e, RetryContext $context): void
+    {
+        $this->retryStatistics->incrementFailedAttempts();
+
+        $this->logger->error('Operation failed', [
+            'exception' => $e,
+            'failedAttempts' => $this->retryStatistics->getFailedAttempts(),
+            'totalAttempts' => $this->retryStatistics->getTotalAttempts()
+        ]);
+
+        $context->incrementRetryCount();
+        $context->setLastException($e);
+    }
+
+    /**
+     * Performs the backoff policy to pause execution before a retry.
+     *
+     * @param RetryContext $context The retry context.
+     */
+    private function performBackoff(RetryContext $context): void
+    {
+        $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
+        $this->retryStatistics->incrementSleepTime($sleepTime);
+
+        $this->logger->info('Sleeping before next attempt', [
+            'sleepTime' => $sleepTime,
+            'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
+        ]);
+
+        Sleep::milliseconds($sleepTime);
     }
 
     /**
