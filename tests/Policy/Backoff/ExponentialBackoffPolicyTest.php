@@ -9,7 +9,7 @@ class ExponentialBackoffPolicyTest extends TestCase
 {
     public function testBackoff(): void
     {
-        $backoffPolicy = new ExponentialBackoffPolicy(1000, 2);
+        $backoffPolicy = new ExponentialBackoffPolicy();
 
         // Test the first few backoff periods.
         $this->assertEquals(1000, $backoffPolicy->backoff(1));  // 1000 * 2^(1-1) = 1000
