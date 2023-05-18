@@ -72,9 +72,9 @@ class RetryTemplate implements RetryTemplateInterface
     public function execute(RetryCallback $retryCallback)
     {
         $context = new RetryContext();
+        $context->start();
 
         while (true) {
-            $context->incrementRetryCount();
             $this->retryStatistics->incrementTotalAttempts();
 
             try {
@@ -102,6 +102,7 @@ class RetryTemplate implements RetryTemplateInterface
                     throw $e;
                 }
 
+                $context->incrementRetryCount();
                 $context->setLastException($e);
 
                 $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());
@@ -139,7 +140,6 @@ class RetryTemplate implements RetryTemplateInterface
         $context = new RetryContext();
 
         while (true) {
-            $context->incrementRetryCount();
             $this->retryStatistics->incrementTotalAttempts();
 
             try {
@@ -167,6 +167,7 @@ class RetryTemplate implements RetryTemplateInterface
                     return $recoveryCallback->recover($context);
                 }
 
+                $context->incrementRetryCount();
                 $context->setLastException($e);
 
                 $sleepTime = $this->backoffPolicy->backoff($context->getRetryCount());

@@ -32,16 +32,21 @@ class RetryContext
      */
     private ?float $startTime = null;
 
+    public function start(): void
+    {
+        if ($this->retryCount == 0) {
+            $this->startTime = microtime(true);
+        }
+
+        // TODO: Throw Exception
+    }
+
     /**
      * Increments the retry count by one. If this is the first retry attempt,
      * also sets the start time.
      */
     public function incrementRetryCount(): void
     {
-        if ($this->retryCount == 0) {
-            $this->startTime = microtime(true);
-        }
-
         $this->retryCount++;
     }
 
