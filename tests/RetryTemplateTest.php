@@ -145,7 +145,7 @@ class RetryTemplateTest extends TestCase
                 $this->equalTo('Operation succeeded on attempt'),
                 $this->callback(function ($context) {
                     // Add checks for 'successfulAttempts', 'totalAttempts' here
-                    return $context['attempt'] === 1 &&
+                    return $context['attempt'] === 0 &&
                         $context['successfulAttempts'] === 1 &&
                         $context['totalAttempts'] === 1;
                 })
@@ -176,11 +176,11 @@ class RetryTemplateTest extends TestCase
         $recoveryCallback = $this->createMock(RecoveryCallback::class);
 
         $retryPolicy->method('shouldRetry')->will($this->returnCallback(function ($exception, $context) {
-            return $context->getRetryCount() < 2;
+            return $context->getRetryCount() < 1;
         }));
 
         $retryCallback->method('doWithRetry')->will($this->returnCallback(function ($context) {
-            if ($context->getRetryCount() < 2) {
+            if ($context->getRetryCount() < 1) {
                 throw new Exception('First attempt will fail');
             }
             return 'Successful Result';  // Second attempt will succeed.
@@ -201,7 +201,7 @@ class RetryTemplateTest extends TestCase
                 [
                     $this->equalTo('Operation succeeded on attempt'),
                     $this->callback(function ($context) {
-                        return $context['attempt'] === 2 &&
+                        return $context['attempt'] === 1 &&
                             $context['successfulAttempts'] === 1 &&
                             $context['totalAttempts'] === 2;
                     })

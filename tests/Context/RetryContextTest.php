@@ -15,7 +15,6 @@ class RetryContextTest extends TestCase
         // Test initial state.
         $this->assertEquals(0, $context->getRetryCount());
         $this->assertNull($context->getLastException());
-        $this->assertNull($context->getStartTime());
 
         // Test incrementing retry count.
         $context->incrementRetryCount();

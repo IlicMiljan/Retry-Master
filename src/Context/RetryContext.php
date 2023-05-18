@@ -27,23 +27,18 @@ class RetryContext
     private ?Exception $lastException = null;
 
     /**
-     * @var float|null The time (in microseconds as a float) when the first
-     *                 retry attempt was made.
+     * @var float The time (in microseconds as a float) when the context
+     *            was created.
      */
-    private ?float $startTime = null;
+    private float $startTime;
 
-    public function start(): void
+    public function __construct()
     {
-        if ($this->retryCount == 0) {
-            $this->startTime = microtime(true);
-        }
-
-        // TODO: Throw Exception
+        $this->startTime = microtime(true);
     }
 
     /**
-     * Increments the retry count by one. If this is the first retry attempt,
-     * also sets the start time.
+     * Increments the retry count by one.
      */
     public function incrementRetryCount(): void
     {
@@ -87,7 +82,7 @@ class RetryContext
      * @return float|null The start time in microseconds as a float, or null if
      * no retry attempt has been made yet.
      */
-    public function getStartTime(): ?float
+    public function getStartTime(): float
     {
         return $this->startTime;
     }

@@ -72,7 +72,6 @@ class RetryTemplate implements RetryTemplateInterface
     public function execute(RetryCallback $retryCallback)
     {
         $context = new RetryContext();
-        $context->start();
 
         while (true) {
             $this->retryStatistics->incrementTotalAttempts();
