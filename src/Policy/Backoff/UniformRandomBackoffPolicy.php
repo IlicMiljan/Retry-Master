@@ -2,6 +2,9 @@
 
 namespace IlicMiljan\RetryMaster\Policy\Backoff;
 
+use IlicMiljan\RetryMaster\Util\Random;
+use IlicMiljan\RetryMaster\Util\RandomGenerator;
+
 /**
  * Class UniformRandomBackoffPolicy
  *
@@ -31,6 +34,11 @@ class UniformRandomBackoffPolicy implements BackoffPolicy
     private int $maxIntervalMilliseconds;
 
     /**
+     * @var Random The random number generator used by this policy.
+     */
+    private Random $random;
+
+    /**
      * UniformRandomBackoffPolicy constructor.
      *
      * @param int $minIntervalMilliseconds The minimum interval in milliseconds
@@ -42,6 +50,8 @@ class UniformRandomBackoffPolicy implements BackoffPolicy
     {
         $this->minIntervalMilliseconds = $minIntervalMilliseconds;
         $this->maxIntervalMilliseconds = $maxIntervalMilliseconds;
+
+        $this->random = new RandomGenerator();
     }
 
     /**
@@ -54,6 +64,16 @@ class UniformRandomBackoffPolicy implements BackoffPolicy
      */
     public function backoff(int $attempt): int
     {
-        return rand($this->minIntervalMilliseconds, $this->maxIntervalMilliseconds);
+        return $this->random->nextInt($this->minIntervalMilliseconds, $this->maxIntervalMilliseconds);
+    }
+
+    /**
+     * Sets the random number generator instance used by this policy.
+     *
+     * @param Random $random An instance of Random interface for generating random numbers.
+     */
+    public function setRandom(Random $random): void
+    {
+        $this->random = $random;
     }
 }
