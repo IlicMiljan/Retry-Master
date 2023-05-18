@@ -3,22 +3,41 @@
 namespace IlicMiljan\RetryMaster\Tests\Policy\Backoff;
 
 use IlicMiljan\RetryMaster\Policy\Backoff\UniformRandomBackoffPolicy;
+use IlicMiljan\RetryMaster\Util\Random;
+use PHPUnit\Framework\MockObject\Stub\ReturnCallback;
 use PHPUnit\Framework\TestCase;
 
 class UniformRandomBackoffPolicyTest extends TestCase
 {
-    public function testUniformRandomBackoff(): void
+    public function testBackoff(): void
     {
-        $minInterval = 1000;
-        $maxInterval = 2000;
-        $backoffPolicy = new UniformRandomBackoffPolicy($minInterval, $maxInterval);
+        $random = $this->createMock(Random::class);
 
-        for ($i = 1; $i <= 10; $i++) {
-            $backoff = $backoffPolicy->backoff($i);
+        $random->method('nextInt')->willReturnOnConsecutiveCalls(
+            new ReturnCallback(fn($min, $max) => $min),
+            new ReturnCallback(fn($min, $max) => $max)
+        );
 
-            // Check that backoff is within the defined interval.
-            $this->assertGreaterThanOrEqual($minInterval, $backoff);
-            $this->assertLessThanOrEqual($maxInterval, $backoff);
-        }
+        $backoffPolicy = new UniformRandomBackoffPolicy();
+        $backoffPolicy->setRandom($random);
+
+        $this->assertEquals(1000, $backoffPolicy->backoff(1));
+        $this->assertEquals(2000, $backoffPolicy->backoff(2));
+    }
+
+    public function testBackoffWithDifferentInitialParameters(): void
+    {
+        $random = $this->createMock(Random::class);
+
+        $random->method('nextInt')->willReturnOnConsecutiveCalls(
+            new ReturnCallback(fn($min, $max) => $min),
+            new ReturnCallback(fn($min, $max) => $max)
+        );
+
+        $backoffPolicy = new UniformRandomBackoffPolicy(500, 1500);
+        $backoffPolicy->setRandom($random);
+
+        $this->assertEquals(500, $backoffPolicy->backoff(1));
+        $this->assertEquals(1500, $backoffPolicy->backoff(2));
     }
 }
