@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class NoBackoffPolicyTest extends TestCase
 {
-    public function testNoBackoff(): void
+    public function testBackoff(): void
     {
         $backoffPolicy = new NoBackoffPolicy();
 
