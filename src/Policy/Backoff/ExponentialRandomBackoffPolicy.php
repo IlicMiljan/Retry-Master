@@ -2,6 +2,9 @@
 
 namespace IlicMiljan\RetryMaster\Policy\Backoff;
 
+use IlicMiljan\RetryMaster\Util\Random;
+use IlicMiljan\RetryMaster\Util\RandomGenerator;
+
 /**
  * ## Exponential Random Backoff Policy
  *
@@ -41,6 +44,11 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
     private int $maxIntervalMilliseconds;
 
     /**
+     * @var Random The random number generator used by this policy.
+     */
+    private Random $random;
+
+    /**
      * ExponentialRandomBackoffPolicy constructor.
      *
      * @param int $initialIntervalMilliseconds The initial interval in
@@ -50,12 +58,20 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
      *                          backoff interval from the last one.
      * @param int $maxIntervalMilliseconds The maximum interval in milliseconds
      *                                      to wait between retries.
+     * @param Random|null $random An instance of Random interface for generating
+     *                            random numbers. If not provided, a new
+     *                            instance of RandomGenerator is used.
      */
-    public function __construct(int $initialIntervalMilliseconds = 1000, float $multiplier = 2, int $maxIntervalMilliseconds = 30000)
-    {
+    public function __construct(
+        int $initialIntervalMilliseconds = 1000,
+        float $multiplier = 2,
+        int $maxIntervalMilliseconds = 30000,
+        Random $random = null
+    ) {
         $this->initialIntervalMilliseconds = $initialIntervalMilliseconds;
         $this->multiplier = $multiplier;
         $this->maxIntervalMilliseconds = $maxIntervalMilliseconds;
+        $this->random = $random ?: new RandomGenerator();
     }
 
     /**
@@ -74,6 +90,6 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
 
         $interval = min($interval, $this->maxIntervalMilliseconds);
 
-        return rand($this->initialIntervalMilliseconds, $interval);
+        return $this->random->nextInt($this->initialIntervalMilliseconds, $interval);
     }
 }
