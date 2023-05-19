@@ -45,7 +45,7 @@ class TimeoutRetryPolicy implements RetryPolicy
     public function shouldRetry(Exception $e, RetryContext $context): bool
     {
         // Calculate the elapsed time since the start of the operation in milliseconds.
-        $elapsedTime = (microtime(true) - $context->getStartTime()) * 1000;
+        $elapsedTime =  intval((microtime(true) - $context->getStartTime()) * 1000);
 
         // If the elapsed time is less than the configured timeout, the operation should be retried.
         return $elapsedTime < $this->timeoutMilliseconds;

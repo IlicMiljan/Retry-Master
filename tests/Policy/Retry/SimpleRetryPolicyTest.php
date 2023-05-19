@@ -34,4 +34,45 @@ class SimpleRetryPolicyTest extends TestCase
         $retryPolicy = new SimpleRetryPolicy(3, []);
         $this->assertFalse($retryPolicy->shouldRetry($exception2, $context));
     }
+
+    public function testShouldRetryWithDefaultMaxAttempts(): void
+    {
+        $exception = new Exception();
+        $context = $this->createMock(RetryContext::class);
+        $context->method('getRetryCount')->willReturnOnConsecutiveCalls(0, 1, 2, 3);
+
+        $retryPolicy = new SimpleRetryPolicy();  // Use the default maxAttempts value
+
+        // Retry is allowed when the number of attempts is less than or equal to maxAttempts
+        $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
+        $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
+        $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
+
+        // Retry is not allowed when the number of attempts exceeds maxAttempts
+        $this->assertFalse($retryPolicy->shouldRetry($exception, $context));
+    }
+
+    public function testShouldRetryWhenRetryableExceptionListEmpty(): void
+    {
+        $exception = new Exception();
+        $context = $this->createMock(RetryContext::class);
+        $context->method('getRetryCount')->willReturn(0);
+
+        $retryPolicy = new SimpleRetryPolicy(3, []);
+
+        // Retry is not allowed when the exception is not in the list of retryable exceptions
+        $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
+    }
+
+    public function testShouldRetryWithUnrelatedException(): void
+    {
+        $exception = new Exception();
+        $context = $this->createMock(RetryContext::class);
+        $context->method('getRetryCount')->willReturn(0);
+
+        $retryPolicy = new SimpleRetryPolicy(3, [RuntimeException::class]);
+
+        // Retry is not allowed when the exception is not in the list of retryable exceptions
+        $this->assertFalse($retryPolicy->shouldRetry($exception, $context));
+    }
 }
