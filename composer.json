@@ -24,12 +24,17 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=7.4|>=8",
+        "php": "^8.0",
         "psr/log": "^3.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.7",
         "phpunit/phpunit": "^9.6",
         "phpstan/phpstan": "^1.10"
+    },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
     }
 }
