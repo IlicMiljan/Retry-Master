@@ -3,6 +3,7 @@
 namespace IlicMiljan\RetryMaster\Tests;
 
 use Exception;
+use IlicMiljan\RetryMaster\Context\RetryContext;
 use IlicMiljan\RetryMaster\Logger\NullLogger;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Backoff\FixedBackoffPolicy;
@@ -27,9 +28,17 @@ class RetryTemplateTest extends TestCase
      */
     private $retryPolicy;
     /**
+     * @var BackoffPolicy&MockObject
+     */
+    private $backoffPolicy;
+    /**
      * @var RetryStatistics&MockObject
      */
     private $retryStatistics;
+    /**
+     * @var Sleeper&MockObject
+     */
+    private $sleeper;
     /**
      * @var LoggerInterface&MockObject
      */
@@ -40,16 +49,16 @@ class RetryTemplateTest extends TestCase
     protected function setUp(): void
     {
         $this->retryPolicy = $this->createMock(RetryPolicy::class);
-        $backoffPolicy = $this->createMock(BackoffPolicy::class);
+        $this->backoffPolicy = $this->createMock(BackoffPolicy::class);
         $this->retryStatistics = $this->createMock(RetryStatistics::class);
-        $sleeper = $this->createMock(Sleeper::class);
+        $this->sleeper = $this->createMock(Sleeper::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->retryTemplate = new RetryTemplate(
             $this->retryPolicy,
-            $backoffPolicy,
+            $this->backoffPolicy,
             $this->retryStatistics,
-            $sleeper,
+            $this->sleeper,
             $this->logger
         );
     }
@@ -88,21 +97,118 @@ class RetryTemplateTest extends TestCase
     public function testExecuteSuccess(): void
     {
         $retryCallback = $this->createMock(RetryCallback::class);
-        $retryCallback->expects($this->once())->method('doWithRetry')->willReturn('success');
+        $retryCallback->expects($this->once())->method('doWithRetry')->willReturn('Success');
+
+        $this->logger->expects($this->once())
+            ->method('info')
+            ->with(
+                $this->equalTo('Operation succeeded on attempt'),
+                $this->callback(function ($context) {
+                    return isset($context['attempt']) && isset($context['successfulAttempts']) && isset($context['totalAttempts']);
+                })
+            );
+
+        $result = $this->retryTemplate->execute($retryCallback);
+        $this->assertEquals('Success', $result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testExecuteSuccessAfterFailure(): void
+    {
+        $retryCallback = $this->createMock(RetryCallback::class);
+        $retryCallback->expects($this->exactly(2))
+            ->method('doWithRetry')
+            ->willReturnOnConsecutiveCalls(
+                $this->throwException(new Exception('error')),
+                $this->returnValue('success')
+            );
+
+        $this->retryPolicy->expects($this->exactly(1))
+            ->method('shouldRetry')
+            ->willReturnOnConsecutiveCalls(true, false);
+
+        $this->backoffPolicy->expects($this->once())
+            ->method('backoff')
+            ->with($this->equalTo(1))
+            ->willReturn(100);
+
+        $this->sleeper->expects($this->once())
+            ->method('milliseconds')
+            ->with($this->equalTo(100));
 
         $result = $this->retryTemplate->execute($retryCallback);
         $this->assertEquals('success', $result);
     }
 
+
     public function testExecuteFailure(): void
     {
         $retryCallback = $this->createMock(RetryCallback::class);
-        $retryCallback->expects($this->once())->method('doWithRetry')->willThrowException(new Exception('error'));
+        $retryCallback->expects($this->once())->method('doWithRetry')->willThrowException(new Exception('Error'));
         $this->retryPolicy->expects($this->once())->method('shouldRetry')->willReturn(false);
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->equalTo('Operation failed'),
+                $this->callback(function ($context) {
+                    return isset($context['exception']) && isset($context['failedAttempts']) && isset($context['totalAttempts']);
+                })
+            );
 
         $this->expectException(Exception::class);
         $this->retryTemplate->execute($retryCallback);
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testExecuteFailureUpdatesRetryContext(): void
+    {
+        $exception = new Exception('Error');
+
+        // RetryCallback will throw our custom Exception
+        $retryCallback = $this->createMock(RetryCallback::class);
+        $retryCallback->expects($this->exactly(2))
+            ->method('doWithRetry')
+            ->willThrowException($exception);
+
+        $this->retryPolicy->expects($this->exactly(2))
+            ->method('shouldRetry')
+            ->willReturnOnConsecutiveCalls(true, false);
+
+        $this->logger->expects($this->exactly(2))
+            ->method('info')
+            ->withConsecutive(
+                [
+                    $this->equalTo('Sleeping before next attempt'),
+                    $this->callback(function ($context) {
+                        return isset($context['sleepTime']) && isset($context['totalSleepTime']);
+                    })
+                ],
+                [
+                    $this->equalTo('Recovery operation succeeded'),
+                    $this->callback(function ($context) {
+                        return true;
+                    })
+                ]
+            );
+
+        $recoveryCallback = $this->createMock(RecoveryCallback::class);
+        $recoveryCallback->expects($this->once())
+            ->method('recover')
+            ->will($this->returnCallback(function (RetryContext $context) use ($exception) {
+                // Assert that the RetryContext has the correct exception
+                $this->assertEquals($exception, $context->getLastException());
+                return 'Recovered';
+            }));
+
+        $result = $this->retryTemplate->executeWithRecovery($retryCallback, $recoveryCallback);
+        $this->assertEquals('Recovered', $result);
+    }
+
 
     /**
      * @throws Exception
@@ -113,11 +219,11 @@ class RetryTemplateTest extends TestCase
         $recoveryCallback = $this->createMock(RecoveryCallback::class);
 
         $retryCallback->expects($this->once())->method('doWithRetry')->willThrowException(new Exception('error'));
-        $recoveryCallback->expects($this->once())->method('recover')->willReturn('recovery success');
+        $recoveryCallback->expects($this->once())->method('recover')->willReturn('Recovery Success');
         $this->retryPolicy->expects($this->once())->method('shouldRetry')->willReturn(false);
 
         $result = $this->retryTemplate->executeWithRecovery($retryCallback, $recoveryCallback);
-        $this->assertEquals('recovery success', $result);
+        $this->assertEquals('Recovery Success', $result);
     }
 
     public function testExecuteWithFailedRecovery(): void
@@ -129,6 +235,23 @@ class RetryTemplateTest extends TestCase
         $recoveryCallback->expects($this->once())->method('recover')->willThrowException(new Exception('recovery error'));
         $this->retryPolicy->expects($this->once())->method('shouldRetry')->willReturn(false);
 
+        $this->logger->expects($this->exactly(2))
+            ->method('error')
+            ->withConsecutive(
+                [
+                    $this->equalTo('Operation failed'),
+                    $this->callback(function ($context) {
+                        return isset($context['exception']);
+                    })
+                ],
+                [
+                    $this->equalTo('Recovery failed'),
+                    $this->callback(function ($context) {
+                        return isset($context['exception']);
+                    })
+                ]
+            );
+
         $this->expectException(Exception::class);
         $this->retryTemplate->executeWithRecovery($retryCallback, $recoveryCallback);
     }
@@ -139,20 +262,20 @@ class RetryTemplateTest extends TestCase
     public function testExecuteLogsAndUpdatesStatisticsOnSuccess(): void
     {
         $retryCallback = $this->createMock(RetryCallback::class);
-        $retryCallback->expects($this->once())->method('doWithRetry')->willReturn('success');
+        $retryCallback->expects($this->once())->method('doWithRetry')->willReturn('Success');
 
         $this->retryStatistics->expects($this->once())->method('incrementTotalAttempts');
         $this->retryStatistics->expects($this->once())->method('incrementSuccessfulAttempts');
         $this->logger->expects($this->once())->method('info');
 
         $result = $this->retryTemplate->execute($retryCallback);
-        $this->assertEquals('success', $result);
+        $this->assertEquals('Success', $result);
     }
 
     public function testExecuteLogsAndUpdatesStatisticsOnFailure(): void
     {
         $retryCallback = $this->createMock(RetryCallback::class);
-        $retryCallback->expects($this->once())->method('doWithRetry')->willThrowException(new Exception('error'));
+        $retryCallback->expects($this->once())->method('doWithRetry')->willThrowException(new Exception('Error'));
 
         $this->retryPolicy->expects($this->once())->method('shouldRetry')->willReturn(false);
 
@@ -172,31 +295,32 @@ class RetryTemplateTest extends TestCase
         $retryCallback = $this->createMock(RetryCallback::class);
         $recoveryCallback = $this->createMock(RecoveryCallback::class);
 
-        $retryCallback->expects($this->once())
+        $retryCallback->expects($this->exactly(2))
             ->method('doWithRetry')
-            ->willThrowException(new Exception('error'));
+            ->willThrowException(new Exception('Error'));
 
         $recoveryCallback->expects($this->once())
             ->method('recover')
-            ->willReturn('recovery success');
+            ->willReturn('Recovery Success');
 
-        $this->retryPolicy->expects($this->once())
+        $this->retryPolicy->expects($this->exactly(2))
             ->method('shouldRetry')
-            ->willReturn(false);
+            ->willReturnOnConsecutiveCalls(true, false);
 
-        $this->retryStatistics->expects($this->once())
+        $this->retryStatistics->expects($this->exactly(2))
             ->method('incrementTotalAttempts');
-        $this->retryStatistics->expects($this->once())
+        $this->retryStatistics->expects($this->exactly(2))
             ->method('incrementFailedAttempts');
-        $this->logger->expects($this->once())
+        $this->retryStatistics->expects($this->once())
+            ->method('incrementSleepTime');
+        $this->logger->expects($this->exactly(2))
             ->method('error');
-        $this->logger->expects($this->once())
+        $this->logger->expects($this->exactly(2))
             ->method('info');
 
         $result = $this->retryTemplate->executeWithRecovery($retryCallback, $recoveryCallback);
-        $this->assertEquals('recovery success', $result);
+        $this->assertEquals('Recovery Success', $result);
     }
-
 
     public function testGetRetryStatistics(): void
     {
