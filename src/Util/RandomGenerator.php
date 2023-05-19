@@ -22,9 +22,7 @@ class RandomGenerator implements Random
      * @param int $min The minimum value that the generated integer can be.
      * @param int $max The maximum value that the generated integer can be.
      *
-     * @return int A random integer between $min and $max.
-     *
-     * @throws InvalidArgumentException If $min is greater than $max.
+     * @return int A random integer between $min and $max
      */
     public function nextInt(int $min, int $max): int
     {
