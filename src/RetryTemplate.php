@@ -14,7 +14,6 @@ use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\InMemoryRetryStatistics;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
 use IlicMiljan\RetryMaster\Util\NanoSleeper;
-use IlicMiljan\RetryMaster\Util\Sleep;
 use IlicMiljan\RetryMaster\Util\Sleeper;
 use Psr\Log\LoggerInterface;
 
