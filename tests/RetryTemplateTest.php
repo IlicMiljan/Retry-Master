@@ -3,9 +3,14 @@
 namespace IlicMiljan\RetryMaster\Tests;
 
 use Exception;
+use IlicMiljan\RetryMaster\Logger\NullLogger;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
+use IlicMiljan\RetryMaster\Policy\Backoff\FixedBackoffPolicy;
+use IlicMiljan\RetryMaster\Policy\Retry\MaxAttemptsRetryPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
+use IlicMiljan\RetryMaster\Statistics\InMemoryRetryStatistics;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use IlicMiljan\RetryMaster\Util\NanoSleeper;
 use IlicMiljan\RetryMaster\Util\Sleeper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +18,7 @@ use IlicMiljan\RetryMaster\RetryTemplate;
 use IlicMiljan\RetryMaster\Callback\RetryCallback;
 use IlicMiljan\RetryMaster\Callback\RecoveryCallback;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 
 class RetryTemplateTest extends TestCase
 {
@@ -46,6 +52,34 @@ class RetryTemplateTest extends TestCase
             $sleeper,
             $this->logger
         );
+    }
+
+    public function testConstructor(): void
+    {
+        $retryTemplate = new RetryTemplate();
+
+        $retryTemplateReflection = new ReflectionClass($retryTemplate);
+
+        $retryPolicyProperty = $retryTemplateReflection->getProperty('retryPolicy');
+        $retryPolicyProperty->setAccessible(true);
+
+        $backoffPolicyProperty = $retryTemplateReflection->getProperty('backoffPolicy');
+        $backoffPolicyProperty->setAccessible(true);
+
+        $retryStatisticsProperty = $retryTemplateReflection->getProperty('retryStatistics');
+        $retryStatisticsProperty->setAccessible(true);
+
+        $sleeperProperty = $retryTemplateReflection->getProperty('sleeper');
+        $sleeperProperty->setAccessible(true);
+
+        $loggerProperty = $retryTemplateReflection->getProperty('logger');
+        $loggerProperty->setAccessible(true);
+
+        $this->assertInstanceOf(MaxAttemptsRetryPolicy::class, $retryPolicyProperty->getValue($retryTemplate));
+        $this->assertInstanceOf(FixedBackoffPolicy::class, $backoffPolicyProperty->getValue($retryTemplate));
+        $this->assertInstanceOf(InMemoryRetryStatistics::class, $retryStatisticsProperty->getValue($retryTemplate));
+        $this->assertInstanceOf(NanoSleeper::class, $sleeperProperty->getValue($retryTemplate));
+        $this->assertInstanceOf(NullLogger::class, $loggerProperty->getValue($retryTemplate));
     }
 
     /**
