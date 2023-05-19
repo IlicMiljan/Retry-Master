@@ -1,5 +1,7 @@
 {
     "name": "ilicmiljan/retry-master",
+    "description": "RetryMaster is a flexible and extensible PHP library for handling operation retries.",
+    "keywords": ["retry-intervals", "retry-library", "retry-strategies", "retry-requests", "retry-pattern", "retry-policies"],
     "type": "library",
     "autoload": {
         "psr-4": {
