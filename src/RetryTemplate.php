@@ -13,7 +13,9 @@ use IlicMiljan\RetryMaster\Policy\Retry\MaxAttemptsRetryPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\InMemoryRetryStatistics;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use IlicMiljan\RetryMaster\Util\NanoSleeper;
 use IlicMiljan\RetryMaster\Util\Sleep;
+use IlicMiljan\RetryMaster\Util\Sleeper;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -41,17 +43,20 @@ class RetryTemplate implements RetryTemplateInterface
     private RetryPolicy $retryPolicy;
     private BackoffPolicy $backoffPolicy;
     private RetryStatistics $retryStatistics;
+    private Sleeper $sleeper;
     private LoggerInterface $logger;
 
     public function __construct(
         RetryPolicy $retryPolicy = null,
         BackoffPolicy $backoffPolicy = null,
         RetryStatistics $retryStatistics = null,
+        Sleeper $sleeper = null,
         LoggerInterface $logger = null
     ) {
         $this->retryPolicy = $retryPolicy ?: new MaxAttemptsRetryPolicy(self::DEFAULT_MAX_ATTEMPTS);
         $this->backoffPolicy = $backoffPolicy ?: new FixedBackoffPolicy();
         $this->retryStatistics = $retryStatistics ?: new InMemoryRetryStatistics();
+        $this->sleeper = $sleeper ?: new NanoSleeper();
         $this->logger = $logger ?: new NullLogger();
     }
 
@@ -203,7 +208,7 @@ class RetryTemplate implements RetryTemplateInterface
             'totalSleepTime' => $this->retryStatistics->getTotalSleepTimeMilliseconds()
         ]);
 
-        Sleep::milliseconds($sleepTime);
+        $this->sleeper->milliseconds($sleepTime);
     }
 
     /**

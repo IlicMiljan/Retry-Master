@@ -5,6 +5,7 @@ namespace IlicMiljan\RetryMaster;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use IlicMiljan\RetryMaster\Util\Sleeper;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -40,6 +41,13 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
      * @var RetryStatistics|null
      */
     private ?RetryStatistics $retryStatistics = null;
+
+    /**
+     * The sleeper for the RetryTemplate being built.
+     *
+     * @var Sleeper|null
+     */
+    private ?Sleeper $sleeper = null;
 
     /**
      * The logger for the RetryTemplate being built.
@@ -85,6 +93,18 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
     }
 
     /**
+     * Sets the sleeper for the RetryTemplate being built.
+     *
+     * @param Sleeper $sleeper The sleeper to set.
+     * @return self Returns the builder instance for method chaining.
+     */
+    public function setSleeper(Sleeper $sleeper): self
+    {
+        $this->sleeper = $sleeper;
+        return $this;
+    }
+
+    /**
      * Sets the logger for the RetryTemplate being built.
      *
      * @param LoggerInterface $logger The logger to set.
@@ -111,6 +131,7 @@ class RetryTemplateBuilder implements RetryTemplateBuilderInterface
             $this->retryPolicy,
             $this->backoffPolicy,
             $this->retryStatistics,
+            $this->sleeper,
             $this->logger
         );
     }
