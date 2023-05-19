@@ -10,22 +10,33 @@ jobs:
   test:
     name: PHP CI
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '7.4', '8.0' ]
+
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: ${{ matrix.php-version }}
           tools: composer:v2, phpunit
+          extensions: mbstring
           coverage: xdebug
 
       - name: Validate composer.json and composer.lock
         run: composer validate
 
       - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer update --prefer-dist --no-progress
+        if: matrix.php-version == '7.4'
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress
+        if: matrix.php-version == '8.0'
 
       - name: Run Unit Tests with PHPUnit
         run: ./vendor/bin/phpunit --coverage-clover clover.xml
