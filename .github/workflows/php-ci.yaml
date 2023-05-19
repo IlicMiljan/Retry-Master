@@ -37,7 +37,7 @@ jobs:
         run: ./vendor/bin/phpunit --coverage-text
 
       - name: Mutation Testing with Infection
-        run: ./vendor/bin/infection --configuration=infection.json --min-msi=70 --min-covered-msi=70
+        run: ./vendor/bin/infection --configuration=infection.json --min-msi=95 --min-covered-msi=95
 
       - name: Check Code Style with PHP_CodeSniffer
         run: ./vendor/bin/phpcs --standard=./phpcs.xml
