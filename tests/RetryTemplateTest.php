@@ -6,6 +6,7 @@ use Exception;
 use IlicMiljan\RetryMaster\Policy\Backoff\BackoffPolicy;
 use IlicMiljan\RetryMaster\Policy\Retry\RetryPolicy;
 use IlicMiljan\RetryMaster\Statistics\RetryStatistics;
+use IlicMiljan\RetryMaster\Util\Sleeper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use IlicMiljan\RetryMaster\RetryTemplate;
@@ -35,12 +36,14 @@ class RetryTemplateTest extends TestCase
         $this->retryPolicy = $this->createMock(RetryPolicy::class);
         $backoffPolicy = $this->createMock(BackoffPolicy::class);
         $this->retryStatistics = $this->createMock(RetryStatistics::class);
+        $sleeper = $this->createMock(Sleeper::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->retryTemplate = new RetryTemplate(
             $this->retryPolicy,
             $backoffPolicy,
             $this->retryStatistics,
+            $sleeper,
             $this->logger
         );
     }

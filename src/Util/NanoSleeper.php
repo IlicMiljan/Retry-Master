@@ -27,9 +27,22 @@ class NanoSleeper implements Sleeper
      */
     public function milliseconds(int $milliseconds): void
     {
+        [$seconds, $nanoseconds] = $this->convertMillisecondsToSecondsAndNanoseconds($milliseconds);
+        time_nanosleep($seconds, $nanoseconds);
+    }
+
+    /**
+     * Converts milliseconds to seconds and nanoseconds.
+     *
+     * @param int $milliseconds The number of milliseconds.
+     *
+     * @return int[] The number of seconds and nanoseconds.
+     */
+    public function convertMillisecondsToSecondsAndNanoseconds(int $milliseconds): array
+    {
         $seconds = floor($milliseconds / 1000);
         $nanoseconds = ($milliseconds % 1000) * 1000000;
 
-        time_nanosleep(intval($seconds), $nanoseconds);
+        return [intval($seconds), intval($nanoseconds)];
     }
 }
