@@ -21,16 +21,16 @@ jobs:
           tools: composer:v2, phpunit
           coverage: xdebug
 
-      - name: Validate composer.json And composer.lock
+      - name: Validate composer.json and composer.lock
         run: composer validate
 
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Run Unit Tests With PHPUnit
+      - name: Run Unit Tests with PHPUnit
         run: ./vendor/bin/phpunit --coverage-clover clover.xml
 
-      - name: Check Code Style With PHP_CodeSniffer
+      - name: Check Code Style with PHP_CodeSniffer
         run: ./vendor/bin/phpcs --standard=./phpcs.xml
 
       - name: Static Analysis with PHPStan
