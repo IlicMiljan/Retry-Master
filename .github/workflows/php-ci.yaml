@@ -34,7 +34,7 @@ jobs:
         run: composer update --prefer-dist --no-progress
 
       - name: Run Unit Tests with PHPUnit
-        run: ./vendor/bin/phpunit --coverage-text
+        run: ./vendor/bin/phpunit --coverage-clover ./coverage.xml
 
       - name: Mutation Testing with Infection
         run: ./vendor/bin/infection --configuration=infection.json --min-msi=100 --min-covered-msi=100
@@ -44,3 +44,10 @@ jobs:
 
       - name: Static Analysis with PHPStan
         run: ./vendor/bin/phpstan analyse -c phpstan.neon
+
+      - name: Upload Coverage Reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          verbose: true
