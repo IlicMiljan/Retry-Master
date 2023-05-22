@@ -33,8 +33,8 @@ RetryMaster is a flexible and extensible PHP library for handling operation retr
     - [Retry Statistics](#retry-statistics)
     - [Retry and Recovery Callbacks](#retry-and-recovery-callbacks)
     - [RetryTemplate](#retrytemplate)
+    - [Sleeping](#sleeping)
     - [Logging](#logging)
-    - [Util](#util)
 - [License](#license)
 - [Credits](#credits)
 
@@ -189,6 +189,22 @@ A backoff policy determines the delay between retry attempts. RetryMaster includ
 
 You can also create your own backoff policies by implementing the `BackoffPolicy` interface.
 
+#### Custom Random Implementation
+
+For the `ExponentialRandomBackoffPolicy`, `UniformRandomBackoffPolicy`,  and any other policies that utilize a random component, you can specify your own custom random generation logic by creating a class that implements the `Random` interface. This provides the flexibility to adapt the random behavior to specific requirements of your application or environment.
+
+```php
+use IlicMiljan\RetryMaster\Policy\Backoff\ExponentialRandomBackoffPolicy;
+use IlicMiljan\RetryMaster\Util\Random;
+
+$randomGenerator = // Your implementation of the Random interface here.
+
+$backoffPolicy = new ExponentialRandomBackoffPolicy();
+$backoffPolicy->setRandom($randomGenerator);
+```
+
+The backoff policies in RetryMaster are designed with flexibility in mind and by default they utilize the `RandomGenerator` implementation provided within the library.
+
 ### Retry Statistics
 
 The `RetryStatistics` interface allows you to gather information about retry operations, such as the total number of attempts, the number of successful attempts, the number of failed attempts, and the total sleep time. You can use the provided `InMemoryRetryStatistics` implementation or create your own.
@@ -200,6 +216,25 @@ You can define custom logic to execute on each retry attempt and when all retrie
 ### RetryTemplate
 
 The `RetryTemplate` class simplifies the process of executing operations with retry logic. You provide the operation logic and the RetryTemplate handles the retries according to the configured retry and backoff policies.
+
+### Sleeping
+
+The `Sleeper` interface in RetryMaster is a powerful tool for implementing delay mechanisms in your retry operations. It provides a method to halt the execution of a script for a specified number of milliseconds. It's particularly useful when implementing backoff policies, simulating network latency in testing environments, or throttling requests to a third-party service.
+
+You can replace default `NanoSleeper` by providing your own implementation in your `RetryTemplate`:
+
+```php
+use IlicMiljan\RetryMaster\RetryTemplateBuilder;
+use IlicMiljan\RetryMaster\Util\Sleeper;
+
+$sleeper = // Your implementation of the Sleeper interface here.
+
+$retryTemplate = (new RetryTemplateBuilder())
+->setSleeper($sleeper)
+->build();
+```
+
+By customizing the `Sleeper` interface in your `RetryTemplate`, you have full control over how your application handles delays and sleeping intervals, allowing for precise and effective management of your retry operations.
 
 ### Logging
 
@@ -217,12 +252,6 @@ $retryTemplate = (new RetryTemplateBuilder())
                     ->setLogger($logger)
                     ->build();
 ```
-
-### Util
-
-The `Sleep` class provides a static method for pausing execution for a specified number of milliseconds.
-
-For more detailed documentation and examples, please refer to the inline comments in each class.
 
 ## License
 
