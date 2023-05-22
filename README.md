@@ -1,6 +1,7 @@
 # RetryMaster
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+[![codecov](https://codecov.io/github/IlicMiljan/Retry-Master/branch/main/graph/badge.svg?token=7EQBUFHJKR)](https://codecov.io/github/IlicMiljan/Retry-Master)
 
 > :warning: **WARNING**: This is a work in progress. API may not be stable and methods can change at any time. Use at your own risk!
 
