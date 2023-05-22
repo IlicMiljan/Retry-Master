@@ -1,7 +1,11 @@
 # RetryMaster
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/ilicmiljan/retry-master/php-ci.yaml)
 [![codecov](https://codecov.io/github/IlicMiljan/Retry-Master/branch/main/graph/badge.svg?token=7EQBUFHJKR)](https://codecov.io/github/IlicMiljan/Retry-Master)
+![Packagist PHP Version](https://img.shields.io/packagist/dependency-v/ilicmiljan/retry-master/php)
+![GitHub](https://img.shields.io/github/license/ilicmiljan/retry-master)
+
 
 > :warning: **WARNING**: This is a work in progress. API may not be stable and methods can change at any time. Use at your own risk!
 
