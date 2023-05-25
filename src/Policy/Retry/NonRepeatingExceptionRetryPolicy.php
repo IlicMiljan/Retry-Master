@@ -32,7 +32,12 @@ class NonRepeatingExceptionRetryPolicy implements RetryPolicy
      */
     public function shouldRetry(Exception $e, RetryContext $context): bool
     {
-        $lastException = $context->getLastException();
+        $lastException = null;
+        $exceptionCount = $context->getExceptionCount();
+
+        if ($exceptionCount > 1) {
+            $lastException = $context->getExceptions()[$exceptionCount - 1];
+        }
 
         // If there was no previous exception or the previous exception is of a different type, retry.
         if ($lastException === null || get_class($lastException) !== get_class($e)) {
