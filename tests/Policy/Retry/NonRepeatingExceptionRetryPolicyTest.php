@@ -17,7 +17,13 @@ class NonRepeatingExceptionRetryPolicyTest extends TestCase
         $exception3 = new Exception("Exception 3");
 
         $context = $this->createMock(RetryContext::class);
-        $context->method('getLastException')->willReturnOnConsecutiveCalls(null, $exception1, $exception2, $exception3);
+        $context->method('getExceptions')->willReturnOnConsecutiveCalls(
+            // Assert when getExceptionCount() == 1, getExceptions() is not called
+            [$exception1, $exception1],
+            [$exception1, $exception1, $exception2],
+            [$exception1, $exception2, $exception3, $exception3]
+        );
+        $context->method('getExceptionCount')->willReturnOnConsecutiveCalls(1, 2, 3, 4);
 
         $retryPolicy = new NonRepeatingExceptionRetryPolicy();
 

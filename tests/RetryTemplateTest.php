@@ -201,7 +201,7 @@ class RetryTemplateTest extends TestCase
             ->method('recover')
             ->will($this->returnCallback(function (RetryContext $context) use ($exception) {
                 // Assert that the RetryContext has the correct exception
-                $this->assertEquals($exception, $context->getLastException());
+                $this->assertEquals($exception, $context->getExceptions()[$context->getExceptionCount() - 1]);
                 return 'Recovered';
             }));
 
