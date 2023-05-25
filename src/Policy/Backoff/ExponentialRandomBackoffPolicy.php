@@ -87,7 +87,10 @@ class ExponentialRandomBackoffPolicy implements BackoffPolicy
 
         $interval = min($interval, $this->maxIntervalMilliseconds);
 
-        return $this->random->nextInt($interval, $interval * $this->multiplier);
+        return min(
+            $this->random->nextInt($interval, intval($interval * $this->multiplier)),
+            $this->maxIntervalMilliseconds
+        );
     }
 
     /**
