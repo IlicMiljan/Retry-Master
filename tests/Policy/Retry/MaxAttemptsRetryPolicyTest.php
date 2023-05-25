@@ -16,8 +16,7 @@ class MaxAttemptsRetryPolicyTest extends TestCase
         $retryContext = $this->createMock(RetryContext::class);
         $retryContext->method('getRetryCount')->willReturnOnConsecutiveCalls(1, 2, 3, 4, 5);
 
-        $maxAttempts = 3;
-        $retryPolicy = new MaxAttemptsRetryPolicy($maxAttempts);
+        $retryPolicy = new MaxAttemptsRetryPolicy();
 
         // Should retry until the number of attempts reaches the maximum limit
         $this->assertTrue($retryPolicy->shouldRetry($exception, $retryContext));
