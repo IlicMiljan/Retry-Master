@@ -21,10 +21,14 @@ class RetryContext
     private int $retryCount = 0;
 
     /**
-     * @var Exception|null The last exception that was thrown during a retry
-     *                     attempt.
+     * @var Exception[] The exceptions that were thrown during retry attempts.
      */
-    private ?Exception $lastException = null;
+    private array $exceptions = [];
+
+    /**
+     * @var int The number of exceptions that occurred during retry attempts.
+     */
+    private int $exceptionCount = 0;
 
     /**
      * @var float The time (in microseconds as a float) when the context
@@ -56,24 +60,34 @@ class RetryContext
     }
 
     /**
-     * Sets the last exception that was thrown during a retry attempt.
+     * Adds an exception to the list of exceptions thrown during retry attempts.
      *
-     * @param Exception $exception The exception to set as the last exception.
+     * @param Exception $exception The exception to add.
      */
-    public function setLastException(Exception $exception): void
+    public function addException(Exception $exception): void
     {
-        $this->lastException = $exception;
+        $this->exceptions[] = $exception;
+        $this->exceptionCount++;
     }
 
     /**
-     * Gets the last exception that was thrown during a retry attempt.
+     * Gets the exceptions that were thrown during retry attempts.
      *
-     * @return Exception|null The last exception, or null if no exception has
-     *                        been set yet.
+     * @return Exception[] The exceptions.
      */
-    public function getLastException(): ?Exception
+    public function getExceptions(): array
     {
-        return $this->lastException;
+        return $this->exceptions;
+    }
+
+    /**
+     * Gets the number of exceptions that occurred during retry attempts.
+     *
+     * @return int The exception count.
+     */
+    public function getExceptionCount(): int
+    {
+        return $this->exceptionCount;
     }
 
     /**
