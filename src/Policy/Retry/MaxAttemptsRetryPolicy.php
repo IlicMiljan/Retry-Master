@@ -49,6 +49,6 @@ class MaxAttemptsRetryPolicy implements RetryPolicy
      */
     public function shouldRetry(Exception $e, RetryContext $context): bool
     {
-        return $context->getRetryCount() < $this->maxAttempts;
+        return $context->getRetryCount() <= $this->maxAttempts;
     }
 }
