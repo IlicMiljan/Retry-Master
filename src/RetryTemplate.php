@@ -189,7 +189,7 @@ class RetryTemplate implements RetryTemplateInterface
         ]);
 
         $context->incrementRetryCount();
-        $context->setLastException($e);
+        $context->addException($e);
     }
 
     /**
