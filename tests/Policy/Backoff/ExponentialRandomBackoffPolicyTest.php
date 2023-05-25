@@ -32,9 +32,9 @@ class ExponentialRandomBackoffPolicyTest extends TestCase
         $backoffPolicy = new ExponentialRandomBackoffPolicy(500, 3, 15000);
         $backoffPolicy->setRandom($random);
 
-        $this->assertEquals(1000, $backoffPolicy->backoff(1));
-        $this->assertEquals(3000, $backoffPolicy->backoff(2));
-        $this->assertEquals(9000, $backoffPolicy->backoff(3));
-        $this->assertEquals(27000, $backoffPolicy->backoff(4));
+        $this->assertEquals(1500, $backoffPolicy->backoff(1));
+        $this->assertEquals(4500, $backoffPolicy->backoff(2));
+        $this->assertEquals(13500, $backoffPolicy->backoff(3));
+        $this->assertEquals(15000, $backoffPolicy->backoff(4));
     }
 }
