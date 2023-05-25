@@ -17,7 +17,7 @@ class TimeoutRetryPolicyTest extends TestCase
         $context->method('getStartTime')
             ->willReturn(microtime(true) - 0.5);  // 500 milliseconds ago
 
-        $retryPolicy = new TimeoutRetryPolicy(1000);  // 1000 milliseconds timeout
+        $retryPolicy = new TimeoutRetryPolicy();  // 30000 milliseconds timeout
 
         // The operation should be retried, as the elapsed time is less than the timeout.
         $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
@@ -29,9 +29,9 @@ class TimeoutRetryPolicyTest extends TestCase
         $context = $this->createMock(RetryContext::class);
 
         $context->method('getStartTime')
-            ->willReturn(microtime(true) - 1.5);  // 1500 milliseconds ago
+            ->willReturn(microtime(true) - 30.5);  // 30500 milliseconds ago
 
-        $retryPolicy = new TimeoutRetryPolicy(1000);  // 1000 milliseconds timeout
+        $retryPolicy = new TimeoutRetryPolicy();  // 30000 milliseconds timeout
 
         // The operation should not be retried, as the elapsed time is greater than the timeout.
         $this->assertFalse($retryPolicy->shouldRetry($exception, $context));
@@ -44,9 +44,9 @@ class TimeoutRetryPolicyTest extends TestCase
 
         // 999 milliseconds ago
         $context->method('getStartTime')
-            ->willReturn(microtime(true) - 0.999);
+            ->willReturn(microtime(true) - 29.999); // 29999.9 milliseconds ago
 
-        $retryPolicy = new TimeoutRetryPolicy(1000);  // 1000 milliseconds timeout
+        $retryPolicy = new TimeoutRetryPolicy();  // 30000 milliseconds timeout
 
         // The operation should be retried, as the elapsed time is just before the timeout.
         $this->assertTrue($retryPolicy->shouldRetry($exception, $context));
@@ -59,9 +59,9 @@ class TimeoutRetryPolicyTest extends TestCase
 
         // 1001 milliseconds ago
         $context->method('getStartTime')
-            ->willReturn(microtime(true) - 1.001);
+            ->willReturn(microtime(true) - 30.001);
 
-        $retryPolicy = new TimeoutRetryPolicy(1000);  // 1000 milliseconds timeout
+        $retryPolicy = new TimeoutRetryPolicy();  // 30000 milliseconds timeout
 
         // The operation should not be retried, as the elapsed time is just after the timeout.
         $this->assertFalse($retryPolicy->shouldRetry($exception, $context));
@@ -74,9 +74,9 @@ class TimeoutRetryPolicyTest extends TestCase
 
         // exactly 1000 milliseconds ago
         $context->method('getStartTime')
-            ->willReturn(microtime(true) - 1.0);
+            ->willReturn(microtime(true) - 30.0);
 
-        $retryPolicy = new TimeoutRetryPolicy(1000);  // 1000 milliseconds timeout
+        $retryPolicy = new TimeoutRetryPolicy();  // 30000 milliseconds timeout
 
         // The operation should not be retried, as the elapsed time is exactly at the timeout.
         $this->assertFalse($retryPolicy->shouldRetry($exception, $context));

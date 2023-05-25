@@ -34,11 +34,6 @@ use Psr\Log\LoggerInterface;
  */
 class RetryTemplate implements RetryTemplateInterface
 {
-    /**
-     * The default maximum number of retry attempts.
-     */
-    public const DEFAULT_MAX_ATTEMPTS = 3;
-
     private RetryPolicy $retryPolicy;
     private BackoffPolicy $backoffPolicy;
     private RetryStatistics $retryStatistics;
@@ -52,7 +47,7 @@ class RetryTemplate implements RetryTemplateInterface
         Sleeper $sleeper = null,
         LoggerInterface $logger = null
     ) {
-        $this->retryPolicy = $retryPolicy ?: new MaxAttemptsRetryPolicy(self::DEFAULT_MAX_ATTEMPTS);
+        $this->retryPolicy = $retryPolicy ?: new MaxAttemptsRetryPolicy();
         $this->backoffPolicy = $backoffPolicy ?: new FixedBackoffPolicy();
         $this->retryStatistics = $retryStatistics ?: new InMemoryRetryStatistics();
         $this->sleeper = $sleeper ?: new NanoSleeper();

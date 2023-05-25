@@ -26,7 +26,7 @@ class TimeoutRetryPolicy implements RetryPolicy
      * @param int $timeoutMilliseconds The timeout in milliseconds after which
      *                                 no more retries should be attempted.
      */
-    public function __construct(int $timeoutMilliseconds)
+    public function __construct(int $timeoutMilliseconds = 30000)
     {
         $this->timeoutMilliseconds = $timeoutMilliseconds;
     }
