@@ -50,7 +50,7 @@ class SimpleRetryPolicy implements RetryPolicy
      */
     public function shouldRetry(Exception $e, RetryContext $context): bool
     {
-        if ($context->getRetryCount() >= $this->maxAttempts) {
+        if ($context->getRetryCount() > $this->maxAttempts) {
             return false;
         }
 
