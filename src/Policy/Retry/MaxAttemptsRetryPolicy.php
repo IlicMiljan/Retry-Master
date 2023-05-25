@@ -31,7 +31,7 @@ class MaxAttemptsRetryPolicy implements RetryPolicy
      *
      * @param int $maxAttempts The maximum number of retry attempts.
      */
-    public function __construct(int $maxAttempts)
+    public function __construct(int $maxAttempts = 3)
     {
         $this->maxAttempts = $maxAttempts;
     }
