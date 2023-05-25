@@ -11,7 +11,7 @@ class ExponentialRandomBackoffPolicyTest extends TestCase
     public function testBackoff(): void
     {
         $random = $this->createMock(Random::class);
-        $random->method('nextInt')->willReturnCallback(fn($min, $max) => $max);
+        $random->method('nextInt')->willReturnCallback(fn($min, $max) => $min);
 
         $backoffPolicy = new ExponentialRandomBackoffPolicy();
         $backoffPolicy->setRandom($random);
@@ -32,9 +32,9 @@ class ExponentialRandomBackoffPolicyTest extends TestCase
         $backoffPolicy = new ExponentialRandomBackoffPolicy(500, 3, 15000);
         $backoffPolicy->setRandom($random);
 
-        $this->assertEquals(500, $backoffPolicy->backoff(1));
-        $this->assertEquals(1500, $backoffPolicy->backoff(2));
-        $this->assertEquals(4500, $backoffPolicy->backoff(3));
-        $this->assertEquals(13500, $backoffPolicy->backoff(4));
+        $this->assertEquals(1000, $backoffPolicy->backoff(1));
+        $this->assertEquals(3000, $backoffPolicy->backoff(2));
+        $this->assertEquals(9000, $backoffPolicy->backoff(3));
+        $this->assertEquals(27000, $backoffPolicy->backoff(4));
     }
 }
