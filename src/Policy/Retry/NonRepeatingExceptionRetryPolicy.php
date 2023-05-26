@@ -36,7 +36,7 @@ class NonRepeatingExceptionRetryPolicy implements RetryPolicy
         $exceptionCount = $context->getExceptionCount();
 
         if ($exceptionCount > 1) {
-            $lastException = $context->getExceptions()[$exceptionCount - 1];
+            $lastException = $context->getExceptions()[$exceptionCount - 2];
         }
 
         // If there was no previous exception or the previous exception is of a different type, retry.
