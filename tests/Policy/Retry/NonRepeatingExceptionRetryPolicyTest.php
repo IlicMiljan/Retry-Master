@@ -20,8 +20,8 @@ class NonRepeatingExceptionRetryPolicyTest extends TestCase
         $context->method('getExceptions')->willReturnOnConsecutiveCalls(
             // Assert when getExceptionCount() == 1, getExceptions() is not called
             [$exception1, $exception1],
-            [$exception1, $exception1, $exception2],
-            [$exception1, $exception2, $exception3, $exception3]
+            [$exception1, $exception2, $exception1],
+            [$exception1, $exception2, $exception3, $exception1]
         );
         $context->method('getExceptionCount')->willReturnOnConsecutiveCalls(1, 2, 3, 4);
 
