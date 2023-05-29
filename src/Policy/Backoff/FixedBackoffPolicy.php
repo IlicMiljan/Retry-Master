@@ -23,17 +23,17 @@ class FixedBackoffPolicy implements BackoffPolicy
     /**
      * @var int The fixed interval in milliseconds to wait between retries.
      */
-    private int $interval;
+    private int $intervalMilliseconds;
 
     /**
      * FixedBackoffPolicy constructor.
      *
-     * @param int $interval The fixed interval in milliseconds to wait between
-     *                      retries.
+     * @param int $intervalMilliseconds The fixed interval in milliseconds to
+     *                                  wait between retries.
      */
-    public function __construct(int $interval = 1000)
+    public function __construct(int $intervalMilliseconds = 1000)
     {
-        $this->interval = $interval;
+        $this->intervalMilliseconds = $intervalMilliseconds;
     }
 
     /**
@@ -46,6 +46,6 @@ class FixedBackoffPolicy implements BackoffPolicy
      */
     public function backoff(int $attempt): int
     {
-        return $this->interval;
+        return $this->intervalMilliseconds;
     }
 }
