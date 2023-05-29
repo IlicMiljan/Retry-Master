@@ -1,13 +1,10 @@
 # RetryMaster
 
-![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+![stability-beta](https://img.shields.io/badge/stability-beta-33bbff.svg)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/ilicmiljan/retry-master/php-ci.yaml)
 [![codecov](https://codecov.io/github/IlicMiljan/Retry-Master/branch/main/graph/badge.svg?token=7EQBUFHJKR)](https://codecov.io/github/IlicMiljan/Retry-Master)
 ![Packagist PHP Version](https://img.shields.io/packagist/dependency-v/ilicmiljan/retry-master/php)
 ![GitHub](https://img.shields.io/github/license/ilicmiljan/retry-master)
-
-
-> :warning: **WARNING**: This is a work in progress. API may not be stable and methods can change at any time. Use at your own risk!
 
 RetryMaster is a flexible and extensible PHP library for handling operation retries. It provides a simple, declarative way of managing operations that might fail due to transient issues. By using RetryMaster, you can easily implement robust retry logic with customizable policies for when and how to perform retries.
 
